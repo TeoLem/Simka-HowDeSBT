@@ -1,0 +1,22 @@
+#Conf data
+NB_KMER = 100000
+L_KMER = 21 
+NB_EXP = 10 
+NB_BITS = [75000000, 100000000]#100000, 150000, 200000, 250000, 300000, 350000, 400000, 450000, 500000, 550000, 600000, 650000, 700000, 750000, 800000, 850000, 900000, 950000, 1000000, 1500000, 2500000, 5000000, 7500000, 10000000, 15000000, 25000000, 50000000] #list n value for n runs
+VERBOSE = True 
+
+
+
+
+
+
+#### Private ####
+ALPHA = 'ATCG'
+MEMORY = 50
+RES = './results/'
+DIR_FASTA = f'{RES}/fasta/'
+JSON_FILE = f'{RES}/map_kmer.json'
+MATRIX = f'{RES}/matrix.gz'
+SIMKA_IN = f'{RES}/simka_input.txt'
+BIN_HOW = '../src/HowDe/howdesbt'
+OUT = './temp/'
