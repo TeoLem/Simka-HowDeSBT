@@ -9,6 +9,7 @@ cd ./src/simka
 cd -
 
 cd ./thirdparty/sdsl-lite
+mkdir ../all
 ./install.sh ../all
 cd -
 
@@ -19,8 +20,8 @@ cmake ..
 make
 cd ../../../
 
-cd ./thirdparty/Jellyfish
-autoreconf -i 
-./configure
-make
+#cd ./thirdparty/Jellyfish
+#autoreconf -i 
+#./configure
+#make
 
