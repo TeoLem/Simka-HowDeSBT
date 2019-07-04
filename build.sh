@@ -37,6 +37,10 @@ cd ../../all/include
 ln -s jellyfish-2.2.10/jellyfish jellyfish
 cd ../../../
 
+cd ./thirdparty/gzstream
+make
+cd -
+
 #BUILD HOWDE
 cd ./src/HowDe
 make
