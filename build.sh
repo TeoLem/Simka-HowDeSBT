@@ -33,9 +33,9 @@ cd ./jellyfish-2.2.10
 ./configure --prefix=$PWD/../../all
 make -j 4
 make install
-cd ../all/include
+cd ../../all/include
 ln -s jellyfish-2.2.10/jellyfish jellyfish
-cd ../../../../
+cd ../../../
 
 #BUILD HOWDE
 cd ./src/HowDe
