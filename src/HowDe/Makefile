@@ -1,5 +1,5 @@
-CXXFLAGS =  -Wall -ggdb -std=c++17 -I../../thirdparty/include
-LDFLAGS  =  -L../../thirdparty/lib -lroaring -lsdsl -lpthread -lz -lgzstream -lstdc++fs
+CXXFLAGS =  -Wall -ggdb -std=c++17 -I../../thirdparty/include -I../../thirdparty/Jellyfish/all/include/ -I../../thirdparty/gzstream -I../../thirdparty/CRoaring/include
+LDFLAGS  =  -L../../thirdparty/lib -L../../thirdparty/Jellyfish/all/lib -L../../thirdparty/gzstream -L../../thirdparty/CRoaring/build -lroaring -lsdsl -lpthread -lz -lgzstream -lstdc++fs
 
 CPP_FILES := howdesbt.cc \
              cmd_make_bf.cc cmd_cluster.cc cmd_build_sbt.cc cmd_query.cc \
