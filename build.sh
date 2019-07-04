@@ -17,16 +17,18 @@ mkdir ../all
 ./install.sh ../all
 cd -
 
-cd ./thirdparty/CRoaring
+cd ./CRoaring
 mkdir -p build
 cd build
 cmake ..
 make
-cd ../../../
+cd ../../
 
-cd ./thirdparty/Jellyfish
+mkdir Jellyfish
+cd ./Jellyfish
 wget https://github.com/gmarcais/Jellyfish/releases/download/v2.2.10/jellyfish-2.2.10.tar.gz
 tar -xvzf jellyfish-2.2.10.tar.gz
+rm jellyfish-2.2.10.tar.gz
 cd ./jellyfish-2.2.10
 ./configure --prefix=$PWD/../../all
 make -j 4
