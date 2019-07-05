@@ -45,3 +45,9 @@ cd -
 cd ./src/HowDe
 make
 
+read -p "Add simka-HowDeSBT path in .bashrc ? (y/n) " value
+if [ "$value" = "y" ]; then
+    echo "export PATH=\$PATH:$PWD" >> ~/.bashrc
+fi
+
+
