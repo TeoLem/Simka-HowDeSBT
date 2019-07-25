@@ -505,7 +505,7 @@ int MakeBFCommand::execute()
                 {
                     make_bloom_filter_simka_using_memory();
                 }
-            } //else if (inputIsSimka) make_bloom_filter_simka();
+            } 
             //else make_bloom_filter_fasta ();
         }
 
@@ -561,7 +561,7 @@ int MakeBFCommand::execute()
 				}
 
 			if (inputIsKmers) make_bloom_filter_kmers ();
-			             //else make_bloom_filter_fasta ();
+			//else make_bloom_filter_fasta ();
 			}
 
 		in.close();
@@ -576,95 +576,6 @@ void MakeBFCommand::add_in_bf(BloomFilter* bf, std::string kmer, std::vector<std
 	if ( line[idThrd] == "1") bf->add (kmer);
 }
 
-//void MakeBFCommand::make_bloom_filter_simka()
-//{
-//    std::vector<string> expList;
-//    std::ifstream expSimka;
-//    expSimka.open (simka_exp);
-//
-//    if ( !expSimka )
-//    {
-//        fatal ("Unable to open : " + simka_exp);
-//    }
-//
-//
-//
-//    std::string exp;
-//    std::string line;
-//
-//    while ( getline(expSimka, line) )
-//    {
-//        std::vector<string> line_split = split (line, ":");
-//        expList.push_back (line_split[0]);
-//    }
-//    expSimka.close();
-//
-//
-//    size_t nbExp = expList.size();
-//
-//    size_t i = 0;
-//    while (i < nbExp)
-//    {
-//        std::ifstream matrixSimka;
-//        matrixSimka.open (simka_file);
-//        std::string line;
-//
-//
-//        if (!matrixSimka)
-//        {
-//            fatal ("Unable to open : " + simka_file);
-//        }
-//
-//        std::string bfOutFilename = simka_dir + "/" + expList[i] + ".bf";
-//
-//        BloomFilter* bf = new BloomFilter(bfOutFilename, kmerSize,
-//                                          numHashes, hashSeed1, hashSeed2,
-//                                          numBits, hashModulus);
-//
-//        if ( contains(debug, "add") )         bf->dbgAdd      = true;
-//        if ( contains(debug, "contains") )    bf->dbgContains = true;
-//
-//        bf->new_bits (compressor);
-//
-//        int currentLine = 0;
-//        while ( getline(matrixSimka, line) )
-//        {
-//            ++currentLine;
-//            std::vector<string> line_split = split (line, " ");
-//            if ( line_split[i+1] == "1")
-//            {
-//                if ( line_split[0].size() != kmerSize )
-//                {
-//                fatal ("error: expected " + std::to_string(kmerSize) + "-mer"
-//                    + " but encoutered " + std::to_string(line_split[0].size())
-//                    + "-mer" + " (at line " + std::to_string(currentLine)
-//                    + " in " + simka_file + ")");
-//                }
-//
-//                if ( contains(debug, "kmers") ) std::cerr << line_split[0] << std::endl;
-//
-//                bf->add (line_split[0]);
-//            }
-//        }
-//
-//        matrixSimka.close();
-//
-//        if ( (compressor == bvcomp_unc_rrr) || (compressor == bvcomp_unc_roar) )
-//        {
-//        BitVector* bv = bf->bvs[0];
-//        bv->unfinished();
-//        }
-//
-//
-//        bf->reportSave = true;
-//        bf->save();
-//        delete bf;
-//        ++i;
-//
-//
-//    }
-//
-//}
 
 void MakeBFCommand::make_bloom_filter_simka_gz ()
 {
@@ -738,11 +649,11 @@ void MakeBFCommand::make_bloom_filter_simka_gz ()
 
             if (contains(debug, "kmers")) std::cerr << l_kmer << std::endl;
 
-            for ( size_t i = 1; i < line_split.size(); ++i )
+            for ( size_t i = 0; i < line_split[1].size(); ++i )
             {
-                if (line_split[i] == "1")
+                if (line_split[1][i] == '1')
                 {
-                    bfList[i - 1]->add(l_kmer);
+                    bfList[i]->add(l_kmer);
                 }
             }
         }
@@ -828,18 +739,9 @@ void MakeBFCommand::make_bloom_filter_simka_using_memory()
         if ( !matrixSimka.is_open() ) { fatal ("Unable to open : " + input); }
 
         unsigned long long currentLine = 0;
-        unsigned long long nb_errors = 0;
         while ( getline(matrixSimka, line_matrix) )
         {
             ++currentLine;
-            //std::cout << kmerSize + nb_exp*2 << std::endl;
-            //std::cout << line_matrix.size() << std::endl;
-            if (line_matrix.size() != kmerSize + nb_exp*2+1)
-            {
-                std::cout << line_matrix << std::endl;
-                nb_errors++;
-                continue;
-            }
 
             std::vector<string> line_split = split (line_matrix, " ");
             std::string l_kmer = line_split[0];
@@ -856,11 +758,11 @@ void MakeBFCommand::make_bloom_filter_simka_using_memory()
 
             if ( contains(debug, "kmers") ) std::cerr << l_kmer << std::endl;
 
-            for ( size_t i=1; i<line_split.size(); ++i )
+            for ( size_t i=0; i<line_split[1].size(); ++i )
             {
-                if ( line_split[i] == "1" )
+                if ( line_split[1][i] == '1' )
                 {
-                    bfList[i-1]->add (l_kmer);
+                    bfList[i]->add (l_kmer);
                 }
             }
 
@@ -878,8 +780,6 @@ void MakeBFCommand::make_bloom_filter_simka_using_memory()
             bf->save();
         }
 
-        std::cerr << std::to_string(nb_errors) << " bug" << std::endl;
-        std::cerr << std::to_string(nb_errors) << " index kmer" << std::endl;
         for ( size_t i=0; i<bfList.size(); i++ )
         {
             delete bfList[i];
@@ -889,90 +789,7 @@ void MakeBFCommand::make_bloom_filter_simka_using_memory()
 
     else
     {
-        std::vector<BloomFilter*> bfList;
-        int cnt = 1;
-        int bf_counter = 0;
-        for (int i=0; i<nb_exp; i+= max_multiple_bf)
-        {
-            std::vector<std::string> part;
-            for (int z=0; z<max_multiple_bf; ++z)
-            {
-                if (i+z >= nb_exp) goto out;
-                std::string bfOutFilename = simka_dir + "/" + expList[bf_counter] + ".bf";
-                part.push_back(bfOutFilename);
-                bfList.push_back(new BloomFilter (bfOutFilename, kmerSize, numHashes, hashSeed1,
-                                              hashSeed2, numBits, hashModulus));
-                ++bf_counter;
-            }
-
-            out:
-            if (debug_memory)
-            {
-                std::cerr << "\nPart: ";
-                for ( auto &nbf : part ) std::cerr << nbf << " ";
-                std::cerr << "\n";
-            }
-
-            for (BloomFilter* bf : bfList)
-            {
-                if ( contains(debug, "add") )       bf->dbgAdd      = true;
-                if ( contains(debug, "contains") )  bf->dbgContains = true;
-                bf->new_bits (compressor);
-            }
-
-            std::ifstream matrixSimka;
-            matrixSimka.open (input);
-
-            std::string line_matrix;
-            if ( !matrixSimka.is_open() ) { fatal ("Unable to open : " + input); }
-            int currentLine = 0;
-            while ( getline(matrixSimka, line_matrix) )
-            {
-                ++currentLine;
-                std::vector<string> line_split = split (line_matrix, " ");
-                std::string l_kmer = line_split[0];
-
-                if ( l_kmer.size() != kmerSize )
-                {
-                    fatal ("error: expected " + std::to_string(kmerSize) + "-mer"
-                           + " but encountered " + std::to_string(l_kmer.size())
-                       + "-mer (at line " + std::to_string(currentLine)
-                       + " in " + input + ")");
-                }
-
-                if ( contains(debug, "kmers") ) std::cerr << l_kmer << std::endl;
-
-                for (int y=i+1; y<i+max_multiple_bf; ++y)
-                {
-                    if (y > nb_exp) break;
-                    if (line_split[y] == "1")
-                    {
-                        bfList[y-cnt]-> add(l_kmer);
-                    }
-
-                }
-            }
-            matrixSimka.close();
-            cnt += max_multiple_bf;
-
-            for ( BloomFilter* bf : bfList )
-            {
-                if ( (compressor == bvcomp_unc_rrr) || (compressor == bvcomp_unc_roar) )
-                {
-                    BitVector* bv = bf->bvs[0];
-                    bv->unfinished();
-                }
-
-                bf->reportSave = true;
-                bf->save();
-            }
-
-            for ( size_t i=0; i<bfList.size(); i++ )
-            {
-                delete bfList[i];
-            }
-            bfList.clear();
-        }
+        fatal ("Out of memory");
     }
 
 }
@@ -1041,8 +858,8 @@ void MakeBFCommand::make_bloom_filter_simka_using_memory()
 //	bf->save();
 //	delete bf;
 //	}
-//
-//
+
+
 void MakeBFCommand::make_bloom_filter_kmers()
 	{
 	string bfOutFilename = build_output_filename();
