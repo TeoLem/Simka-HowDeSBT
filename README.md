@@ -67,13 +67,13 @@ ID3_group2: file3.fasta
 ```m
 out_dir
 ├── HowDe
-│   ├── bf				#(contains dumped bloom filter)
-│   └── build			#(contains index)
-│   └── log_howde.txt	#(HowDeSBT logs)
-├── logs.txt 			#(general logs)
+│   ├── bf              #(contains dumped bloom filter)
+│   └── build           #(contains index)
+│   └── log_howde.txt   #(HowDeSBT logs)
+├── logs.txt            #(general logs)
 └── Simka
-    ├── log_simka.txt	#(Simka logs)
-    ├── results			#(contains matrix)
+    ├── log_simka.txt   #(Simka logs)
+    ├── results         #(contains matrix)
     └── tmpFiles		
 ```
 
