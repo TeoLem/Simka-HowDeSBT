@@ -1,4 +1,4 @@
-CXXFLAGS =  -Wall -ggdb -std=c++17 -I../../thirdparty/all/include -I../../thirdparty/gzstream -I../../thirdparty/CRoaring/include
+CXXFLAGS =  -Wall -ggdb -std=c++1z -I../../thirdparty/all/include -I../../thirdparty/gzstream -I../../thirdparty/CRoaring/include
 LDFLAGS  =  -L../../thirdparty/all/lib -L../../thirdparty/gzstream -L../../thirdparty/CRoaring/build -lroaring -lsdsl -lpthread -lz -lgzstream -lstdc++fs
 
 CPP_FILES := howdesbt.cc \
