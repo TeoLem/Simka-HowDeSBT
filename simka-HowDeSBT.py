@@ -372,7 +372,6 @@ class Run:
         if self._simka.groups:
             simka_to_json(self._simka.input, f'{self._howde.dir}/groups.json')
 
-        print(" ".join(cmd_pipe))
         if self._utils.debug:
             logger.debug(f"pipe cmd: {cmd_pipe}")
         os.system(' '.join(cmd_pipe))
@@ -408,16 +407,6 @@ def timer(start, end):
     return "{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds)
 
 
-def check_input(input_f, group):
-    if group:
-        with open(input_f, "r") as f_in:
-            file_check = [file.rstrip() for file in f_in]
-        for f in file_check:
-            check(f)
-    else:
-        check(input_f)
-
-
 def check(f):
     s_file = set()
     if os.path.isfile(f):
@@ -440,9 +429,7 @@ def check(f):
                     for grp in split_line[1].split(";"):
                         for _f in grp.split(","):
                             s_file.add(_f.strip())
-        print(str(s_file) + "  WHAT")
         for dataset in s_file:
-            print(dataset)
             if not os.path.isfile(dataset):
                 logger.critical(f"Input seq file {dataset} doesn't exists")
                 sys.exit()
