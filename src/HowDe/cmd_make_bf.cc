@@ -16,6 +16,7 @@
 #include "cmd_make_bf.h"
 #include "gzstream.h"
 #include "filesystem.hpp"
+
 namespace fs = std::filesystem;
 
 using std::string;
@@ -498,15 +499,11 @@ int MakeBFCommand::execute()
                 }
                 else if (fs::is_fifo(input, ec))
                 {
-                    make_bloom_filter_simka_using_memory();
+                    make_bloom_filter_simka_pipe();
                     if (ec) std::cerr << "Error in is_fifo: " << ec.message() << std::endl;
                 }
-                else
-                {
-                    make_bloom_filter_simka_using_memory();
-                }
             } 
-            //else make_bloom_filter_fasta ();
+            else make_bloom_filter_fasta ();
         }
 
 	// otherwise, make a series of filters according to each line specified in
@@ -561,7 +558,7 @@ int MakeBFCommand::execute()
 				}
 
 			if (inputIsKmers) make_bloom_filter_kmers ();
-			//else make_bloom_filter_fasta ();
+			else make_bloom_filter_fasta ();
 			}
 
 		in.close();
@@ -679,7 +676,7 @@ void MakeBFCommand::make_bloom_filter_simka_gz ()
 
 
 
-void MakeBFCommand::make_bloom_filter_simka_using_memory()
+void MakeBFCommand::make_bloom_filter_simka_pipe()
 {
     std::vector<string> expList;
     std::ifstream expSimka;
@@ -789,75 +786,75 @@ void MakeBFCommand::make_bloom_filter_simka_using_memory()
 
     else
     {
-        fatal ("Out of memory");
+        fatal ("Out of memory, open " + std::to_string(nb_exp) + " required " + std::to_string(bf_size_g*nb_exp) + " Gb available memory");
     }
 
 }
 
 
-//void MakeBFCommand::make_bloom_filter_fasta()  // this also supports fastq
-//	{
-//	string bfOutFilename = build_output_filename();
-//
-//	// create the hash table, with jellyfish defaults
-//
-//	const u64 hashSize    = 10*1000*1000;
-//	const u32 numReprobes = 126;
-//	const u32 counterLen  = 7;
-//
-//	unsigned int savedKmerSize = jellyfish::mer_dna::k();
-//	jellyfish::mer_dna::k(kmerSize);
-//
-//	mer_hash_type merHash (hashSize, kmerSize*2, counterLen, numThreads, numReprobes);
-//
-//	// count the kmers
-//	// nota bene: MerCounter internally discards kmers containing any non-ACGT
-//	// $$$ ERROR_CHECK need to trap exceptions from the jellyfish stuff
-//	// $$$ ERROR_CHECK does jellyfish give us any indication if one of the sequence files doesn't exist?
-//
-//	MerCounter counter(numThreads, merHash, seqFilenames.begin(), seqFilenames.end());
-//	counter.exec_join (numThreads);
-//
-//	// build the bloom filter
-//
-//	BloomFilter* bf = new BloomFilter(bfOutFilename, kmerSize,
-//	                                  numHashes, hashSeed1, hashSeed2,
-//	                                  numBits, hashModulus);
-//	if (contains(debug,"add"))      bf->dbgAdd      = true;
-//	if (contains(debug,"contains")) bf->dbgContains = true;
-//
-//	bf->new_bits (compressor);
-//
-//	const auto jfAry = merHash.ary();
-//	const auto end   = jfAry->end();
-//	for (auto kmer=jfAry->begin() ; kmer!=end ; ++kmer)
-//		{
-//		auto& keyValuePair = *kmer;
-//		if (keyValuePair.second >= minAbundance)
-//			{
-//			if (contains(debug,"kmers"))
-//				cerr << keyValuePair.first << " " << keyValuePair.second << endl;
-//
-//			if (contains(debug,"strings"))
-//				bf->add (keyValuePair.first.to_str());
-//			else
-//				bf->add ((u64*) keyValuePair.first.data());
-//			}
-//		}
-//
-//	jellyfish::mer_dna::k(savedKmerSize);	// restore jellyfish kmer size
-//
-//	if ((compressor == bvcomp_unc_rrr)
-//	 || (compressor == bvcomp_unc_roar))
-//		{
-//		BitVector* bv = bf->bvs[0];
-//		bv->unfinished();
-//		}
-//
-//	bf->reportSave = true;
-//	bf->save();
-//	delete bf;
-//	}
+void MakeBFCommand::make_bloom_filter_fasta()  // this also supports fastq
+	{
+	string bfOutFilename = build_output_filename();
+
+	// create the hash table, with jellyfish defaults
+
+	const u64 hashSize    = 10*1000*1000;
+	const u32 numReprobes = 126;
+	const u32 counterLen  = 7;
+
+	unsigned int savedKmerSize = jellyfish::mer_dna::k();
+	jellyfish::mer_dna::k(kmerSize);
+
+	mer_hash_type merHash (hashSize, kmerSize*2, counterLen, numThreads, numReprobes);
+
+	// count the kmers
+	// nota bene: MerCounter internally discards kmers containing any non-ACGT
+	// $$$ ERROR_CHECK need to trap exceptions from the jellyfish stuff
+	// $$$ ERROR_CHECK does jellyfish give us any indication if one of the sequence files doesn't exist?
+
+	MerCounter counter(numThreads, merHash, seqFilenames.begin(), seqFilenames.end());
+	counter.exec_join (numThreads);
+
+	// build the bloom filter
+
+	BloomFilter* bf = new BloomFilter(bfOutFilename, kmerSize,
+	                                  numHashes, hashSeed1, hashSeed2,
+	                                  numBits, hashModulus);
+	if (contains(debug,"add"))      bf->dbgAdd      = true;
+	if (contains(debug,"contains")) bf->dbgContains = true;
+
+	bf->new_bits (compressor);
+
+	const auto jfAry = merHash.ary();
+	const auto end   = jfAry->end();
+	for (auto kmer=jfAry->begin() ; kmer!=end ; ++kmer)
+		{
+		auto& keyValuePair = *kmer;
+		if (keyValuePair.second >= minAbundance)
+			{
+			if (contains(debug,"kmers"))
+				cerr << keyValuePair.first << " " << keyValuePair.second << endl;
+
+			if (contains(debug,"strings"))
+				bf->add (keyValuePair.first.to_str());
+			else
+				bf->add ((u64*) keyValuePair.first.data());
+			}
+		}
+
+	jellyfish::mer_dna::k(savedKmerSize);	// restore jellyfish kmer size
+
+	if ((compressor == bvcomp_unc_rrr)
+	 || (compressor == bvcomp_unc_roar))
+		{
+		BitVector* bv = bf->bvs[0];
+		bv->unfinished();
+		}
+
+	bf->reportSave = true;
+	bf->save();
+	delete bf;
+	}
 
 
 void MakeBFCommand::make_bloom_filter_kmers()

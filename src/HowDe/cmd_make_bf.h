@@ -25,10 +25,9 @@ public:
 	virtual void debug_help (std::ostream& s);
 	virtual void parse (int _argc, char** _argv);
 	virtual int execute (void);
-	//virtual void make_bloom_filter_fasta (void);
+	virtual void make_bloom_filter_fasta (void);
 	virtual void make_bloom_filter_kmers (void);
-	//virtual void make_bloom_filter_simka (void);
-    virtual void make_bloom_filter_simka_using_memory (void);
+    virtual void make_bloom_filter_simka_pipe (void);
     virtual void make_bloom_filter_simka_gz(void);
     static void add_in_bf (BloomFilter* bf, std::string kmer, std::vector<std::string> line, int idThrd);
     virtual std::string build_output_filename(void);
