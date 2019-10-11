@@ -24,6 +24,8 @@ cmake ..
 make
 cd ../../
 
+cp ./CRoaring/build/libroaring* ./all/lib
+
 mkdir Jellyfish
 cd ./Jellyfish
 wget https://github.com/gmarcais/Jellyfish/releases/download/v2.2.10/jellyfish-2.2.10.tar.gz
