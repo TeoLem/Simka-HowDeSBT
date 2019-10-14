@@ -9,14 +9,14 @@ Otions:
     -h --help
     --in <file>             Simka input file
     --inDir <dir>           Directory that contains simka input file and fasta files
-    --k <int>               [default: 21]
-    --abundance-min <int>   Lower count to keep a k-mer [default: 2]
+    --k <int>               Size of k-mers [default: 21]
+    --abundance-min <int>   Lower count to keep a k-mer, if 1, a k-mer will be kept if it also found in other data set [default: 2]
     --output-dir <dir>      Output directory [default: ./output]
     --bf-size <str>         Bloom filters size [default: 2G]
     --memory <int>          Max memory [default: max]
     --threads <int>         Threads [default: 8]
     --pipe                  Using pipe to read matrix from simka to HowDe
-    --groups                check rare k-mers in specific experiments
+    --groups                Check rare k-mers in specific experiments
     --verbose
     --debug
 
