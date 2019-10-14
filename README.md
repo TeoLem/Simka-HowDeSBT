@@ -60,6 +60,7 @@ ID2: file2.fasta
 ID3: file3.fasta
 ```
 For detais, see : https://github.com/GATB/simka#input
+
 To check rare k-mers in specific experiments, you can add a suffix to the dataset ID, for example:
 ```
 ID1_group1: file1.fasta
