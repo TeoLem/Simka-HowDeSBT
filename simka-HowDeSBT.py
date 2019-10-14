@@ -135,9 +135,6 @@ def main():
 
     command = Run(utils, simka, howde)
     
-    if simka.lower == '1':
-        logger.warning(f"When --abundance-min is set to 1, there is a bug when calculating simka run statistics, the values at the end of the file {simka.log} are incorrect")
-
     with Timer() as _t:
         if not pipe:
             command.simka()
