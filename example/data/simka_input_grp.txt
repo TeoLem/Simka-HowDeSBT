@@ -1,0 +1,5 @@
+ID0_group0: exp_0.fa
+ID1_group0: exp_1.fa
+ID2_group0: exp_2.fa
+ID3_group1: exp_3.fa
+ID4_group1: exp_4.fa
