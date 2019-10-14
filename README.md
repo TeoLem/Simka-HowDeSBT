@@ -24,6 +24,11 @@ Then using build script to compile all tools and dependencies:
 ./build.sh
 ```
 
+simka-HowDeSBT.py requires docopt package
+```
+pip3 install -r requirements.txt
+```
+
 #### Usage
 ```
 simka-HowDeSBT.py (--in <str>) (--inDir <dir>) [--k <int>] [--abundance-min <int>] [--output-dir <dir>] [--bf-size <str>] [--memory <int>] [--threads <int>] [--groups] [--pipe] [--verbose] [--debug]
