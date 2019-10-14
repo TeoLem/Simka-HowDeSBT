@@ -5,7 +5,7 @@ Description:
 Usage:
     simka-HowDeSBT.py (--in <str>) (--inDir <dir>) [--k <int>] [--abundance-min <int>] [--output-dir <dir>] [--bf-size <str>] [--memory <int>] [--threads <int>] [--groups] [--pipe] [--verbose] [--debug]
 
-Options:
+Otions:
     -h --help
     --in <file>             Simka input file
     --inDir <dir>           Directory that contains simka input file and fasta files
@@ -35,9 +35,20 @@ import os
 import time
 import json
 
+DIR = os.path.dirname(os.path.realpath(__file__))
+
+try:
+    ld_path = os.environ['LD_LIBRARY_PATH']
+    os.environ['LD_LIBRARY_PATH'] = ld_path + f':{DIR}/thirdparty/all/lib'
+except KeyError:
+    os.environ['LD_LIBRARY_PATH'] = f':{DIR}/thirdparty/all/lib'
+
+
 def main():
     args = docopt.docopt(__doc__)
+    
     global logger
+    c_dir = os.getcwd()
 
     utils = Options()
     simka = Options()
@@ -45,15 +56,16 @@ def main():
     pipe = args["--pipe"]
 
     utils.k = args["--k"]
-    utils.d_input = args["--inDir"]
-    utils.d_output = args["--output-dir"]
+    utils.d_input = args["--inDir"] if args["--inDir"][0] in '~/' else f'{c_dir}/{args["--inDir"]}'
+    utils.d_output = args["--output-dir"] if args['--output-dir'][0] in '~/' else f'{c_dir}/{args["--output-dir"]}'
     utils.real_path = os.path.realpath(__file__)
 
-    simka.bin = [f'{utils.real_path.replace("simka-HowDeSBT.py", "src/simka/build/bin/simka")}']
+    simka.bin = [f'{DIR}/src/simka/build/bin/simka']
     simka.dir = f"{utils.d_output}/Simka"
-    simka.input = args["--in"]
+    simka.input = args["--in"] if args['--in'][0] in '~/' else f'{c_dir}/{args["--in"]}'                   
     simka.results = f"{simka.dir}/results"
     simka.groups = args["--groups"]
+    
     if pipe:
         simka.matrix = f"{simka.results}/named_pipe"
     else:
@@ -63,7 +75,7 @@ def main():
     simka.lower = args["--abundance-min"]
     simka.threads = args["--threads"]
 
-    howde.bin = [f'{utils.real_path.replace("simka-HowDeSBT.py", "src/HowDe/howdesbt")}']
+    howde.bin = [f'{DIR}/src/HowDe/howdesbt']
     howde.dir = f"{utils.d_output}/HowDe"
     howde.bf_size = args["--bf-size"]
     if args["--memory"] == "max":
@@ -83,10 +95,15 @@ def main():
     utils.verbose = args["--verbose"]
     utils.debug = args["--debug"]
 
-    for path in [simka.input, utils.d_output, utils.d_input]:
-        if not path.startswith("/") and not path.startswith("~"):
-            print("Please specify full path for each argument requires path")
-            sys.exit()
+    nb_exp = len(open(simka.input).readlines())
+    if int(howde.bf_size)*nb_exp > howde.memory*(8.59*(10**9))-1:
+        print(f'Out of memory, loading {nb_exp} BFs requires {(int(howde.bf_size)*nb_exp)/(8.59*(10**9))} gb of memory')
+        sys.exit(-1)
+
+    #for path in [simka.input, utils.d_output, utils.d_input]:
+    #    if not path.startswith("/") and not path.startswith("~"):
+    #        print("Please specify full path for each argument requires path")
+    #        sys.exit()
 
     if not os.path.exists(utils.d_output):
         os.makedirs(utils.d_output)
@@ -102,14 +119,11 @@ def main():
     ########################################################################################################################
 
     logger.info("Make env ...")
-    try:
-        os.makedirs(simka.dir)
-        os.makedirs(howde.dir)
-        os.makedirs(howde.dir_bf)
-        os.makedirs(howde.dir_build)
-        os.makedirs(simka.results)
-    except FileExistsError:
-        pass
+    for d in [simka.dir, howde.dir, howde.dir_bf, howde.dir_build, simka.results]:
+        try:
+            os.makedirs(d)
+        except FileExistsError:
+            pass
 
     if pipe:
         with Cd(simka.results):
@@ -120,27 +134,39 @@ def main():
     ########################################################################################################################
 
     command = Run(utils, simka, howde)
+    
+    if simka.lower == '1':
+        logger.warning(f"When --abundance-min is set to 1, there is a bug when calculating simka run statistics, the values at the end of the file {simka.log} are incorrect")
 
-    all_time1 = time.time()
+    with Timer() as _t:
+        if not pipe:
+            command.simka()
+            command.howde("makebf")
+            command.howde("topology")
+            command.howde("build")
 
-    if not pipe:
-        command.simka()
-        command.howde("makebf")
-        command.howde("topology")
-        command.howde("build")
+        else:
+            logger.warning("Output matrix from simka is not stored with --pipe")
+            command.pipe()
+            command.howde("topology")
+            command.howde("build")
 
-    else:
-        logger.warning("Output matrix from simka is not stored with pipe")
-        command.pipe()
-        command.howde("topology")
-        command.howde("build")
-
-    all_time = timer(all_time1, time.time())
+    all_time = _t.t
     logger.info(f"Done in: {all_time} (ALL)")
 
 ########################################################################################################################
 # -------------------------------------------------- Classes ----------------------------------------------------------#
 ########################################################################################################################
+class Timer:
+    def __enter__(self):
+        self.t1 = time.time()
+        return self
+    
+    def __exit__(self, *args):
+        self.t2 = time.time()
+        hours, rem = divmod(self.t2-self.t1, 3600)
+        minutes, seconds = divmod(rem, 60)
+        self.t = "{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds)
 
 
 class Cd:
@@ -220,19 +246,19 @@ class Run:
         if self._utils.debug:
             logger.debug(f'Simka cmd: {" ".join(cmd_simka)}')
 
-        simka_time1 = time.time()
-        with Cd(self._utils.d_input):
-            if self._simka.groups:
-                simka_to_json(self._simka.input, f'{self._howde.dir}/groups.json')
-            process_simka = subprocess.Popen(
-                cmd_simka, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-            )
-        (out, err) = process_simka.communicate()
+        with Timer() as _t:
+            with Cd(self._utils.d_input):
+                if self._simka.groups:
+                    simka_to_json(self._simka.input, f'{self._howde.dir}/groups.json')
+                process_simka = subprocess.Popen(
+                    cmd_simka, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+                )
+            (out, err) = process_simka.communicate()
         
-        with open(self._simka.log, "a") as log_s:
-            log_s.write(out.decode())
+            with open(self._simka.log, "a") as log_s:
+                log_s.write(out.decode())
 
-        simka_time = timer(simka_time1, time.time())
+        simka_time = _t.t
         logger.info(f"Done in: {simka_time} (SIMKA)")
 
     def howde(self, mode):
@@ -252,21 +278,20 @@ class Run:
             if self._utils.debug:
                 logger.debug(f'makebf cmd: {" ".join(cmd_makebf)}')
 
-            bf_time1 = time.time()
+            with Timer() as _t:
+                with Cd(self._howde.dir_bf):
+                    process_makebf = subprocess.Popen(
+                        cmd_makebf, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+                    )
 
-            with Cd(self._howde.dir_bf):
-                process_makebf = subprocess.Popen(
-                    cmd_makebf, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-                )
+                (out, err) = process_makebf.communicate()
 
-            (out, err) = process_makebf.communicate()
+                with open(self._howde.log, "a") as log_h:
+                    log_h.write("-- Make bloom filter --\n")
+                    log_h.write(out.decode())
+                    log_h.write("\n")
 
-            with open(self._howde.log, "a") as log_h:
-                log_h.write("-- Make bloom filter --\n")
-                log_h.write(out.decode())
-                log_h.write("\n")
-
-            bf_time = timer(bf_time1, time.time())
+            bf_time = _t.t
             logger.info(f"Done in: {bf_time} (MAKEBF)")
 
         elif mode == "topology":
@@ -289,20 +314,19 @@ class Run:
             if self._utils.debug:
                 logger.debug(f'topology cmd: {" ".join(cmd_topology)}')
 
-            topo_time1 = time.time()
+            with Timer() as _t:
+                with Cd(self._howde.dir_build):
+                    process_topology = subprocess.Popen(
+                        cmd_topology, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+                    )
+                (out, err) = process_topology.communicate()
 
-            with Cd(self._howde.dir_build):
-                process_topology = subprocess.Popen(
-                    cmd_topology, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-                )
-            (out, err) = process_topology.communicate()
-
-            with open(self._howde.log, "a") as log_h:
-                log_h.write("-- Compute tree topology --\n")
-                log_h.write(out.decode())
-                log_h.write("\n")
-
-            topo_time = timer(topo_time1, time.time())
+                with open(self._howde.log, "a") as log_h:
+                    log_h.write("-- Compute tree topology --\n")
+                    log_h.write(out.decode())
+                    log_h.write("\n")
+            
+            topo_time = _t.t
             logger.info(f"Done in: {topo_time} (TOPOLOGY)")
 
         elif mode == "build":
@@ -314,19 +338,19 @@ class Run:
             if self._utils.debug:
                 logger.debug(f'build cmd: {" ".join(cmd_build)}')
 
-            build_time1 = time.time()
-            with Cd(self._howde.dir_build):
-                process_build = subprocess.Popen(
-                    cmd_build, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-                )
-            (out, err) = process_build.communicate()
+            with Timer() as _t:
+                with Cd(self._howde.dir_build):
+                    process_build = subprocess.Popen(
+                        cmd_build, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+                    )
+                (out, err) = process_build.communicate()
 
-            with open(self._howde.log, "a") as log_h:
-                log_h.write("-- Build tree --\n")
-                log_h.write(out.decode())
-                log_h.write("\n")
+                with open(self._howde.log, "a") as log_h:
+                    log_h.write("-- Build tree --\n")
+                    log_h.write(out.decode())
+                    log_h.write("\n")
 
-            build_time = timer(build_time1, time.time())
+            build_time = _t.t
             logger.info(f"Done in: {build_time} (BUILD)")
 
     def pipe(self):
@@ -344,9 +368,13 @@ class Run:
             self._simka.matrix,
             "-abundance-min",
             self._simka.lower,
+            "-kmer-size",
+            self._utils.k,
             "-nb-cores",
             self._simka.threads,
             "-max-merge",
+            self._simka.threads,
+            "-max-count",
             self._simka.threads,
             "-pipe",
         )
@@ -365,19 +393,26 @@ class Run:
             f"--bits={self._howde.bf_size}",
         )
 
-        pipe_time1 = time.time()
+        with Timer() as _t:
+            if self._simka.groups:
+                simka_to_json(self._simka.input, f'{self._howde.dir}/groups.json')
 
-        cmd_pipe = cmd_makebf + ["&"] + cmd_simka
+            if self._utils.debug:
+                logger.debug(f"pipe cmd: {cmd_pipe}")
+
+            simka_process = subprocess.Popen(cmd_simka, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            howde_process = subprocess.Popen(cmd_makebf, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         
-        if self._simka.groups:
-            simka_to_json(self._simka.input, f'{self._howde.dir}/groups.json')
+            h_out, h_err = howde_process.communicate()
+            s_out, s_err = simka_process.communicate()
+            
+            with open(self._simka.log, "a") as log_s:
+                log_s.write(s_out.decode('UTF-8'))
 
-        if self._utils.debug:
-            logger.debug(f"pipe cmd: {cmd_pipe}")
-        os.system(' '.join(cmd_pipe))
-        
+            with open(self._howde.log, "a") as log_h:
+                log_h.write(f"-- Make bloom filter --\n{h_out.decode()}\n")
 
-        pipe_time = timer(pipe_time1, time.time())
+        pipe_time = _t.t
         logger.info(f"Done in: {pipe_time} (Simka + HowDeSBT makebf)")
 
 
@@ -399,12 +434,6 @@ def setup_logger(name, log_path, verbose, debug):
         streamHandler = logging.StreamHandler(sys.stdout)
         streamHandler.setFormatter(formatter)
         l.addHandler(streamHandler)
-
-
-def timer(start, end):
-    hours, rem = divmod(end - start, 3600)
-    minutes, seconds = divmod(rem, 60)
-    return "{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds)
 
 
 def check(f):
