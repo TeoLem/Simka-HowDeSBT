@@ -1,5 +1,7 @@
 CXXFLAGS =  -Wall -ggdb -std=c++1z -I../../thirdparty/all/include -I../../thirdparty/gzstream -I../../thirdparty/CRoaring/include
-LDFLAGS  =  -L../../thirdparty/all/lib -L../../thirdparty/gzstream -L../../thirdparty/CRoaring/build -lroaring -lsdsl -lpthread -lz -lgzstream -lstdc++fs -ljellyfish-2.0 
+LDFLAGS  =  -L../../thirdparty/all/lib -L../../thirdparty/gzstream -L../../thirdparty/CRoaring/build -lroaring -lsdsl -lpthread -lz -lgzstream -ljellyfish-2.0 
+
+UNAME := $(shell uname)
 
 CPP_FILES := howdesbt.cc \
 	cmd_make_bf.cc cmd_cluster.cc cmd_build_sbt.cc cmd_query.cc \
@@ -10,13 +12,16 @@ CPP_FILES := howdesbt.cc \
 OBJ_FILES := $(addprefix ./,$(notdir $(CPP_FILES:.cc=.o)))
 
 
-
-all:   CXXFLAGS += -DNDEBUG -O3 
-
-all:   clean howdesbt
+all: CXXFLAGS += -DNDEBUG -O3 
+	
+all: clean howdesbt
 
 howdesbt: $(OBJ_FILES)
-	$(CXX) -o $@ $^ $(LDFLAGS)
+ifeq ($(UNAME),Darwin)
+	$(CXX) -o $@ $^ $(LDFLAGS) -lc++fs
+else 
+	$(CXX) -o $@ $^ $(LDFLAGS) -lstdc++fs
+endif	
 
 %.o: %.cc
 	$(CXX) -c -o $@ $^ $(CXXFLAGS)
