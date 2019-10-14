@@ -735,6 +735,7 @@ void MakeBFCommand::make_bloom_filter_simka_pipe()
 
         if ( !matrixSimka.is_open() ) { fatal ("Unable to open : " + input); }
 
+        const struct timespec t[] {{0,1}};
         unsigned long long currentLine = 0;
         while ( getline(matrixSimka, line_matrix) )
         {
@@ -762,6 +763,8 @@ void MakeBFCommand::make_bloom_filter_simka_pipe()
                     bfList[i]->add (l_kmer);
                 }
             }
+
+            nanosleep(t, NULL);
 
         }
 
