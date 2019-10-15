@@ -15,9 +15,18 @@
 #include "commands.h"
 #include "cmd_make_bf.h"
 #include "gzstream.h"
-#include "filesystem.hpp"
 
-namespace fs = std::filesystem;
+#ifdef __has_include
+#  if __has_include(<filesystem>)
+#    include <filesystem>
+     namespace fs = std::filesystem;
+#  elif __has_include(<experimental/filesystem>)
+#    include <experimental/filesystem>
+     namespace fs = std::experimental::filesystem;
+#  else
+#    error "Missing <filesystem>"
+#  endif
+#endif
 
 using std::string;
 using std::vector;
