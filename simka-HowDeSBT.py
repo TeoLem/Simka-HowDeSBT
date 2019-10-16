@@ -127,7 +127,7 @@ def main():
 
     if pipe:
         with Cd(simka.results):
-            p = subprocess.Popen(["mkfifo named_pipe"], shell=True)
+            subprocess.Popen(["mkfifo named_pipe"], shell=True)
 
     ########################################################################################################################
     # ---------------------------------------------------- Run ------------------------------------------------------------#
@@ -390,6 +390,7 @@ class Run:
             f"--bits={self._howde.bf_size}",
         )
 
+        cmd_pipe = cmd_makebf + ['&'] + cmd_simka
         with Timer() as _t:
             if self._simka.groups:
                 simka_to_json(self._simka.input, f'{self._howde.dir}/groups.json')
@@ -469,7 +470,6 @@ def check(f):
 
 
 def simka_to_json(file_in, file_out):
-    dict_json = {}
     l = []
     with open(file_in, 'r') as f:
         for z in f:

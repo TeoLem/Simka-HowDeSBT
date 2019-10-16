@@ -30,7 +30,6 @@ def main():
     makedirs('jellyfish1')
     jellyfish1 = jelly_test(args_jelly1)
    
-    t1 = time.time()
     args_jelly2 = Options()
     args_jelly2.k = '31'
     args_jelly2.a_min = '1'
@@ -43,7 +42,6 @@ def main():
     jellyfish2 = jelly_test(args_jelly2)
     
     # SIMKA TEST
-    t1 = time.time()
     args_simka1 = Options()
     args_simka1.k = '31'
     args_simka1.a_min = '2'
@@ -171,7 +169,6 @@ def simka_test(args):
 
     matrix = os.listdir(args.output)
     nb_kmers = 0
-    current_file = 0
     nb_kmers_per_file = {x: 0 for x in files}
     
     for sub_matrix in matrix:
@@ -201,7 +198,6 @@ def cleandirs(*args):
             pass
 
 def simka_to_json(file_in, file_out):
-    dict_json = {}
     l = []
     with open(file_in, 'r') as f:
         for z in f:
