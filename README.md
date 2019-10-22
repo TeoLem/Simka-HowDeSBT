@@ -2,9 +2,9 @@
 
 This tool uses two other tools: Simka (https://github.com/GATB/simka) and HowDeSBT (https://github.com/medvedevgroup/HowDeSBT).
 
-Simka: Benoit G, Peterlongo P, Mariadassou M, Drezen E, Schbath S, Lavenier D, Lemaitre C. (2016) Multiple comparative metagenomics using multiset k-mer counting. PeerJ Computer Science 2:e94
+**Simka**: Benoit G, Peterlongo P, Mariadassou M, Drezen E, Schbath S, Lavenier D, Lemaitre C. (2016) Multiple comparative metagenomics using multiset k-mer counting. PeerJ Computer Science 2:e94
 
-HowDeSBT: Robert S Harris and Paul Medvedev, Improved representation of sequence bloom trees, Bioinformatics, btz662
+**HowDeSBT**: Robert S Harris and Paul Medvedev, Improved representation of sequence bloom trees, Bioinformatics, btz662
 
 Although Simka is a metagenomics tool allowing comparison of metagenomic datasets, it can be used as a faster and memory efficient k-mer counter. It has been modified to produce a presence/absence kmer matrix.
 
