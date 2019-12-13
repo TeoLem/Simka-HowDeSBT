@@ -20,7 +20,7 @@ HowDeSBT normally uses Jellyfish for k-mer counting, here it use Simka:
 
 #### Installation
 
-Clone this repository : `git clone --recursive https://github.com/TeoLem/Simka-HowDeSBT`
+Clone this repository : `git clone --recursive https://github.com/tlemane/Simka-HowDeSBT`
 
 Then using build script to compile all tools and dependencies:
 
